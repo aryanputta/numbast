@@ -309,6 +309,16 @@ def get_reproducible_info(
     return "\n".join(commented) + "\n"
 
 
+def _render_predefined_macros(predefined_macros: list[str]) -> str:
+    defines_expanded = []
+    for define in predefined_macros:
+        name, separator, value = define.partition("=")
+        if not separator:
+            value = "1"
+        defines_expanded.append(f"#define {name} {value}")
+    return "\\n".join(defines_expanded)
+
+
 def get_shim(
     shim_include: str,
     predefined_macros: list[str] = [],
@@ -328,9 +338,8 @@ def get_shim(
        function writes shim functions to.
     5. Module callbacks setup and teardown if provided
     """
-    defines_expanded = [f"#define {define}" for define in predefined_macros]
-    defines = "\\n".join(defines_expanded)
-    defines_py = f'shim_defines = "{defines}"'
+    defines = _render_predefined_macros(predefined_macros)
+    defines_py = f"shim_defines = {defines!r}"
 
     shim_include = f"shim_include = {shim_include}"
 
